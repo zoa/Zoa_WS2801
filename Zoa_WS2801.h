@@ -1,5 +1,5 @@
-#ifndef ADAFRUIT_WS2801_H
-#define ADAFRUIT_WS2801_H
+#ifndef ZOA_WS2801_H
+#define ZOA_WS2801_H
 
 
 
@@ -57,7 +57,7 @@ class Adafruit_WS2801 {
   volatile uint8_t
     *clkport  , *dataport;   // Clock & data PORT registers
   void
-    alloc(uint16_t n, byte*& arr),
+    alloc(uint16_t n, byte*& arr, uint16_t& cnt),
     startSPI(void);
   boolean
     hardwareSPI, // If 'true', using hardware SPI
@@ -66,13 +66,6 @@ class Adafruit_WS2801 {
 
 
 ///////////////////////////////////////////////////////////////////////////
-
-struct RGB_color
-{
-  byte r,g,b;
-  RGB_color( byte R, byte G, byte B) : r(R), g(G), b(B) {}
-  void set( byte R, byte G, byte B ) { r=R; g=G; b=B; }
-};
 
 
 // Child class containing methods specific to Zoa project
@@ -83,8 +76,6 @@ public:
   Zoa_WS2801(uint16_t n, uint8_t dpin, uint8_t cpin, uint8_t order=WS2801_RGB);
   // Use SPI hardware; specific pins only:
   Zoa_WS2801(uint16_t n, uint8_t order=WS2801_RGB);
-  // Empty constructor; init pins/strand length/data order later:
-  Zoa_WS2801();
   // Release memory (as needed):
   ~Zoa_WS2801();
   
@@ -125,6 +116,7 @@ private:
   // Used by show() to hold the scaled values to be passed to the parent's
   // show method
   byte* scaledPixelBuffer;
+  uint16_t scaledPixelCnt;
 };
 
 
