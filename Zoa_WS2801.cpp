@@ -8,21 +8,23 @@
 // Constructor for use with hardware SPI (specific clock/data pins):
 Adafruit_WS2801::Adafruit_WS2801(uint16_t n, uint8_t order) {
   rgb_order = order;
-  alloc(n);
+  alloc(n,pixels);
   updatePins();
 }
 
 // Constructor for use with arbitrary clock/data pins:
 Adafruit_WS2801::Adafruit_WS2801(uint16_t n, uint8_t dpin, uint8_t cpin, uint8_t order) {
   rgb_order = order;
-  alloc(n);
+  alloc(n,pixels);
   updatePins(dpin, cpin);
 }
 
 // Allocate 3 bytes per pixel, init to RGB 'off' state:
-void Adafruit_WS2801::alloc(uint16_t n) {
+void Adafruit_WS2801::alloc(uint16_t n, byte*& arr) {
+  // The original Adafruit library just initialized the pixels array all the time here;
+  // added an array argument so base classes could use it to initialize other arrays too
   begun   = false;
-  numLEDs = ((pixels = (uint8_t *)calloc(n, 3)) != NULL) ? n : 0;
+  numLEDs = ((arr = (uint8_t *)calloc(n, 3)) != NULL) ? n : 0;
 }
 
 // via Michael Vogt/neophob: empty constructor is used when strand length
@@ -200,62 +202,90 @@ uint32_t Adafruit_WS2801::getPixelColor(uint16_t n) {
 // Zoa_WS2801
 //////////////////////////////////////////////////////////////
 
-Zoa_WS2801::Zoa_WS2801(uint16_t n, uint8_t order)
+Zoa_WS2801::Zoa_WS2801(uint16_t n, uint8_t order) : Adafruit_WS2801(n,order)
 {
-  Adafruit_WS2801(n,order);
-  initialize_scaled_values();
+  alloc(n,scaledPixelBuffer);
+  initialize();
 }
 
 
 Zoa_WS2801::Zoa_WS2801(uint16_t n, uint8_t dpin, uint8_t cpin, uint8_t order)
+ : Adafruit_WS2801(n,dpin,cpin,order)
 {
-  Adafruit_WS2801(n,dpin,cpin,order);
-  initialize_scaled_values();
+  alloc(n,scaledPixelBuffer);
+  initialize();
 }
 
 
-Zoa_WS2801::Zoa_WS2801()
+Zoa_WS2801::Zoa_WS2801() : Adafruit_WS2801()
 {
-  Adafruit_WS2801();
-  initialize_scaled_values();
+  scaledPixelBuffer = NULL;
+  initialize();
 }
 
-void Zoa_WS2801::initialize_scaled_values()
+Zoa_WS2801::~Zoa_WS2801() 
 {
-  for ( byte i = 0; i < 255; ++i )
-  {
-    scaled_values[i] = scaleValue(i);
+  if ( scaledPixelBuffer != NULL) {
+    free(scaledPixelBuffer);
   }
 }
 
-
-byte Zoa_WS2801::r( uint32_t color )
+void Zoa_WS2801::initialize()
 {
-  return color >> 16;
+  for ( byte i = 0; i < 255; ++i )
+  {
+    scaledValues[i] = scaleValue(i);
+  }
 }
 
-byte Zoa_WS2801::g( uint32_t color )
+void Zoa_WS2801::show()
 {
-  return color >> 8;
+  uint16_t cnt = numLEDs*3;
+  for ( uint16_t i = 0; i < cnt; ++i ) {
+    scaledPixelBuffer[i] = scaledValues[ pixels[i] ];
+  }
+  byte* temp = pixels;
+  pixels = scaledPixelBuffer;
+  Adafruit_WS2801::show();
+  pixels = temp;
 }
 
-byte Zoa_WS2801::b( uint32_t color )
+void Zoa_WS2801::getPixelRGBColor( uint16_t n, byte (&color)[3] )
 {
-  return color;
+  if (n < numLEDs) {
+    uint16_t ofs = n*3;
+    bool rgb = rgb_order == WS2801_RGB;
+    color[0] = rgb_order ? pixels[ofs] : pixels[ofs+1];
+    color[1] = rgb_order ? pixels[ofs+1] : pixels[ofs];
+    color[2] = pixels[ofs+2];
+    Serial.println( String(color[0]) + " " + String(color[1]) + " " + String(color[2]) );
+  } else {
+    color[0] = 0;
+    color[1] = 0;
+    color[2] = 0;
+  }
 }
-
 
 uint8_t Zoa_WS2801::scaleValue( uint8_t value ) {
  return value / ( cbrt(255) - cbrt(value) + 1 );
 }
 
 
-void Zoa_WS2801::setScaledPixelColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b) {
-  setPixelColor( n, scaled_values[r], scaled_values[g], scaled_values[b] );
+void Zoa_WS2801::pushFront( byte r, byte g, byte b )
+{
+  uint16_t cnt = numLEDs*3;
+  byte* end = pixels + numLEDs*3;
+  byte* prev = pixels;
+  for ( byte* i = pixels + 3; i < end; ++i, ++prev )
+  {
+    *i = *prev;
+  }
+  setPixelColor(0,r,g,b);
 }
 
-void Zoa_WS2801::test() {
+
+void Zoa_WS2801::scalingTest() {
   for ( byte i = 0; i < 256; ++i ) {
-    Serial.println( String( scaleValue(i) ) );
+    Serial.println( "Original value: " + String(i) + ", scaled value: " + String( scaleValue(i) ) );
   }
 }

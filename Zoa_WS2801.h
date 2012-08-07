@@ -45,7 +45,7 @@ class Adafruit_WS2801 {
   uint32_t
     getPixelColor(uint16_t n);
 
- private:
+ protected:
 
   uint16_t
     numLEDs;
@@ -57,7 +57,7 @@ class Adafruit_WS2801 {
   volatile uint8_t
     *clkport  , *dataport;   // Clock & data PORT registers
   void
-    alloc(uint16_t n),
+    alloc(uint16_t n, byte*& arr),
     startSPI(void);
   boolean
     hardwareSPI, // If 'true', using hardware SPI
@@ -66,6 +66,13 @@ class Adafruit_WS2801 {
 
 
 ///////////////////////////////////////////////////////////////////////////
+
+struct RGB_color
+{
+  byte r,g,b;
+  RGB_color( byte R, byte G, byte B) : r(R), g(G), b(B) {}
+  void set( byte R, byte G, byte B ) { r=R; g=G; b=B; }
+};
 
 
 // Child class containing methods specific to Zoa project
@@ -78,20 +85,29 @@ public:
   Zoa_WS2801(uint16_t n, uint8_t order=WS2801_RGB);
   // Empty constructor; init pins/strand length/data order later:
   Zoa_WS2801();
+  // Release memory (as needed):
+  ~Zoa_WS2801();
   
-  // Input values are scaled to maintain approximately linear 
-  // subjective brightness
-  void setScaledPixelColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b);
-  void setScaledPixelColor(uint16_t n, uint32_t c);
+  // Whether to scale the values before displaying. Defaults to true.
+  void set_scaling( bool on );
+  
+  // This is exactly like the Adafruit show method, but scales the values
+  // before displaying. (We don't want to scale them sooner because then we'd
+  // have to unscale them in getPixelColor, and there isn't always a 1:1 mapping
+  // between scaled and unscaled values.)
+  void show();
+  
+  // Get the R/G/B components. Not tested yet. color argument must 
+  // have size of 3.
+  void getPixelRGBColor( uint16_t n, byte (&color)[3] );
+  
+  // Prepends the color to the pixels array and shifts all other values
+  // to accommodate it.
+  void pushFront( byte r, byte g, byte b );
   
   // Prints the scaled equivalents of values [0,255] to serial
   // (call Serial.begin before calling this)
-  void test();
-  
-  // Extract the individual components of a 32-bit packed color value
-  static byte r( uint32_t color );
-  static byte g( uint32_t color );
-  static byte b( uint32_t color );
+  void scalingTest();
   
 private:
   // Returns value from the scaledValues array at index value
@@ -101,7 +117,14 @@ private:
   // coefficients added by trial and error to make it look more linear)
   void initialize();
   
-  byte scaledValues[256];
+  bool scaled;
+  
+  // Lookup array for the scaled values
+  byte scaledValues[256]; 
+  
+  // Used by show() to hold the scaled values to be passed to the parent's
+  // show method
+  byte* scaledPixelBuffer;
 };
 
 
