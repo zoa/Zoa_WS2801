@@ -95,7 +95,7 @@ void Zoa_WS2801::getPixelRGBColor( uint16_t n, byte (&color)[3] )
 //////////////////////////////////////////////////////////////
 
 uint8_t Zoa_WS2801::scaleValue( uint8_t value ) {
- return value / ( cbrt(255) - cbrt(value) + 1 );
+ return value / ( pow(255,(1/3)) - pow(value,(1/3)) + 1 );
 }
 
 //////////////////////////////////////////////////////////////
