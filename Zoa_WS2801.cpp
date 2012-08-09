@@ -54,15 +54,11 @@ void Zoa_WS2801::show()
   byte* temp = pixels;
   if ( scaled )
   {
-      Serial.println(numLEDs);
-      Serial.println(scaledPixelCnt);
     if ( scaledPixelCnt != numLEDs )
     {
       free( scaledPixelBuffer );
       scaledPixelBuffer = NULL;
       alloc( numLEDs,scaledPixelBuffer,scaledPixelCnt );
-      Serial.println(numLEDs);
-      Serial.println(scaledPixelCnt);
     }
     uint16_t cnt = numLEDs*3;
     for ( uint16_t i = 0; i < cnt; ++i ) {
@@ -100,16 +96,27 @@ uint8_t Zoa_WS2801::scaleValue( uint8_t value ) {
 
 //////////////////////////////////////////////////////////////
 
-void Zoa_WS2801::pushFront( byte r, byte g, byte b )
+void Zoa_WS2801::pushFront( rgbInfo_t color )
 {
-  uint16_t cnt = numLEDs*3;
+  byte* last = pixels + numLEDs*3 - 1;
+  for ( byte* i = last - 3; i >= pixels; --i, --last )
+  {
+    *last = *i;
+  }
+  setPixelColor(0,color.r,color.g,color.b);
+}
+
+//////////////////////////////////////////////////////////////
+
+void Zoa_WS2801::setAll( rgbInfo_t color )
+{
+  setPixelColor(0,color.r,color.g,color.b);
   byte* end = pixels + numLEDs*3;
   byte* prev = pixels;
   for ( byte* i = pixels + 3; i < end; ++i, ++prev )
   {
     *i = *prev;
   }
-  setPixelColor(0,r,g,b);
 }
 
 //////////////////////////////////////////////////////////////

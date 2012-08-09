@@ -68,6 +68,13 @@ class Adafruit_WS2801 {
 ///////////////////////////////////////////////////////////////////////////
 
 
+typedef struct rgbInfo {
+  rgbInfo(byte r_in, byte g_in, byte b_in) : r(r_in), g(g_in), b(b_in) {}
+  byte r;
+  byte g;
+  byte b;
+} rgbInfo_t;
+
 // Child class containing methods specific to Zoa project
 class Zoa_WS2801 : public Adafruit_WS2801
 {
@@ -94,7 +101,10 @@ public:
   
   // Prepends the color to the pixels array and shifts all other values
   // to accommodate it.
-  void pushFront( byte r, byte g, byte b );
+  void pushFront( rgbInfo_t color );
+  
+  // Sets all the LEDs in the array to a given color
+  void setAll( rgbInfo_t color );
   
   // Prints the scaled equivalents of values [0,255] to serial
   // (call Serial.begin before calling this)
