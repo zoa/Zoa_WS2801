@@ -21,19 +21,9 @@ Zoa_WS2801::Zoa_WS2801(uint16_t n, uint8_t dpin, uint8_t cpin, uint8_t order)
 
 //////////////////////////////////////////////////////////////
 
-Zoa_WS2801::~Zoa_WS2801() 
-{
-  if ( scaledPixelBuffer != NULL) {
-    free(scaledPixelBuffer);
-  }
-}
-
-//////////////////////////////////////////////////////////////
-
 void Zoa_WS2801::initialize()
 {
   scaled = true;
-  alloc(numLEDs,scaledPixelBuffer,scaledPixelCnt);
   for ( uint16_t i = 0; i < 256; ++i )
   {
     scaledValues[i] = scaleValue(i);
@@ -42,32 +32,40 @@ void Zoa_WS2801::initialize()
 
 //////////////////////////////////////////////////////////////
 
-void Zoa_WS2801::set_scaling( bool on )
+void Zoa_WS2801::set_scaling( bool is_on )
 {
-  scaled = on;
+  scaled = is_on;
 }
 
 //////////////////////////////////////////////////////////////
 
 void Zoa_WS2801::show()
 {
-  byte* temp = pixels;
-  if ( scaled )
-  {
-    if ( scaledPixelCnt != numLEDs )
-    {
-      free( scaledPixelBuffer );
-      scaledPixelBuffer = NULL;
-      alloc( numLEDs,scaledPixelBuffer,scaledPixelCnt );
+  // This mostly duplicates the code of the Adafruit show method, which
+  // i don't like doing, but keeps us from having to modify the original library or waste
+  // memory on having a separate scaled buffer
+  uint16_t i, nl3 = numLEDs * 3; // 3 bytes per LED
+  uint8_t  bit;
+
+  // Write 24 bits per pixel:
+  if(hardwareSPI) {
+    for(i=0; i<nl3; i++) {
+      byte val = scaled ? scaledValues[ pixels[i] ] : pixels[i];
+      SPDR = val;
+      while(!(SPSR & (1<<SPIF)));
     }
-    uint16_t cnt = numLEDs*3;
-    for ( uint16_t i = 0; i < cnt; ++i ) {
-      scaledPixelBuffer[i] = scaledValues[ pixels[i] ];
+  } else {
+    for(i=0; i<nl3; i++ ) {
+      for(bit=0x80; bit; bit >>= 1) {
+        if(pixels[i] & bit) *dataport |=  datapinmask;
+        else                *dataport &= ~datapinmask;
+        *clkport |=  clkpinmask;
+        *clkport &= ~clkpinmask;
+      }
     }
-    pixels = scaledPixelBuffer;
   }
-  Adafruit_WS2801::show();
-  pixels = temp;
+
+  delay(1); // Data is latched by holding clock pin low for 1 millisecond
 }
 
 //////////////////////////////////////////////////////////////

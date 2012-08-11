@@ -76,11 +76,9 @@ public:
   Zoa_WS2801(uint16_t n, uint8_t dpin, uint8_t cpin, uint8_t order=WS2801_RGB);
   // Use SPI hardware; specific pins only:
   Zoa_WS2801(uint16_t n, uint8_t order=WS2801_RGB);
-  // Release memory (as needed):
-  ~Zoa_WS2801();
   
   // Whether to scale the values before displaying. Defaults to true.
-  void set_scaling( bool on );
+  void set_scaling( bool is_on );
   
   // This is exactly like the Adafruit show method, but scales the values
   // before displaying. (We don't want to scale them sooner because then we'd
@@ -115,11 +113,6 @@ private:
   
   // Lookup array for the scaled values
   byte scaledValues[256]; 
-  
-  // Used by show() to hold the scaled values to be passed to the parent's
-  // show method
-  byte* scaledPixelBuffer;
-  uint16_t scaledPixelCnt;
 };
 
 
