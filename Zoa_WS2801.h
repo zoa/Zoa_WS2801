@@ -1,7 +1,7 @@
 #ifndef ZOA_WS2801_H
 #define ZOA_WS2801_H
 
-
+#include "rgbInfo.h";
 
 #if (ARDUINO >= 100)
  #include <Arduino.h>
@@ -68,13 +68,6 @@ class Adafruit_WS2801 {
 ///////////////////////////////////////////////////////////////////////////
 
 
-typedef struct rgbInfo {
-  rgbInfo(byte r_in, byte g_in, byte b_in) : r(r_in), g(g_in), b(b_in) {}
-  byte r;
-  byte g;
-  byte b;
-} rgbInfo_t;
-
 // Child class containing methods specific to Zoa project
 class Zoa_WS2801 : public Adafruit_WS2801
 {
@@ -97,7 +90,7 @@ public:
   
   // Get the R/G/B components. Not tested yet. color argument must 
   // have size of 3.
-  void getPixelRGBColor( uint16_t n, byte (&color)[3] );
+  void getPixelRGBColor( uint16_t n, rgbInfo_t color );
   
   // Prepends the color to the pixels array and shifts all other values
   // to accommodate it.

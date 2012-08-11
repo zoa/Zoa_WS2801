@@ -34,7 +34,7 @@ void Zoa_WS2801::initialize()
 {
   scaled = true;
   alloc(numLEDs,scaledPixelBuffer,scaledPixelCnt);
-  for ( byte i = 0; i < 255; ++i )
+  for ( uint16_t i = 0; i < 256; ++i )
   {
     scaledValues[i] = scaleValue(i);
   }
@@ -72,19 +72,18 @@ void Zoa_WS2801::show()
 
 //////////////////////////////////////////////////////////////
 
-void Zoa_WS2801::getPixelRGBColor( uint16_t n, byte (&color)[3] )
+void Zoa_WS2801::getPixelRGBColor( uint16_t n, rgbInfo_t color )
 {
   if (n < numLEDs) {
     uint16_t ofs = n*3;
     bool rgb = rgb_order == WS2801_RGB;
-    color[0] = rgb_order ? pixels[ofs] : pixels[ofs+1];
-    color[1] = rgb_order ? pixels[ofs+1] : pixels[ofs];
-    color[2] = pixels[ofs+2];
-    Serial.println( String(color[0]) + " " + String(color[1]) + " " + String(color[2]) );
+    color.r = rgb_order ? pixels[ofs] : pixels[ofs+1];
+    color.g = rgb_order ? pixels[ofs+1] : pixels[ofs];
+    color.b = pixels[ofs+2];
   } else {
-    color[0] = 0;
-    color[1] = 0;
-    color[2] = 0;
+    color.r = 0;
+    color.g = 0;
+    color.b = 0;
   }
 }
 
