@@ -86,9 +86,8 @@ public:
   // between scaled and unscaled values.)
   void show();
   
-  // Get the R/G/B components. Not tested yet. color argument must 
-  // have size of 3.
-  void getPixelRGBColor( uint16_t n, rgbInfo_t color );
+  // Get the R/G/B components. Not tested yet.
+  rgbInfo_t getPixelRGBColor( uint16_t n );
   
   // Prepends the color to the pixels array and shifts all other values
   // to accommodate it.

@@ -70,8 +70,9 @@ void Zoa_WS2801::show()
 
 //////////////////////////////////////////////////////////////
 
-void Zoa_WS2801::getPixelRGBColor( uint16_t n, rgbInfo_t color )
+rgbInfo_t Zoa_WS2801::getPixelRGBColor( uint16_t n )
 {
+  rgbInfo_t color;
   if (n < numLEDs) {
     uint16_t ofs = n*3;
     bool rgb = rgb_order == WS2801_RGB;
@@ -83,6 +84,7 @@ void Zoa_WS2801::getPixelRGBColor( uint16_t n, rgbInfo_t color )
     color.g = 0;
     color.b = 0;
   }
+  return color;
 }
 
 //////////////////////////////////////////////////////////////
