@@ -93,6 +93,9 @@ public:
   // to accommodate it.
   void pushFront( rgbInfo_t color );
   
+  // Like pushFront but backward!
+  void pushBack( rgbInfo_t color );
+  
   // Sets all the LEDs in the array to a given color
   void setAll( rgbInfo_t color );
   

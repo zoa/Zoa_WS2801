@@ -107,6 +107,20 @@ void Zoa_WS2801::pushFront( rgbInfo_t color )
 
 //////////////////////////////////////////////////////////////
 
+void Zoa_WS2801::pushBack( rgbInfo_t color )
+{
+  byte* last = pixels + numLEDs*3;
+  byte* prev = pixels;
+  for ( byte* i = pixels+3; i < last; ++i, ++prev )
+  {
+    *prev = *i;
+  }
+  setPixelColor(numLEDs-1,color.r,color.g,color.b);
+}
+
+
+//////////////////////////////////////////////////////////////
+
 void Zoa_WS2801::setAll( rgbInfo_t color )
 {
   setPixelColor(0,color.r,color.g,color.b);
