@@ -76,8 +76,8 @@ rgbInfo_t Zoa_WS2801::getPixelRGBColor( uint16_t n )
   if (n < numLEDs) {
     uint16_t ofs = n*3;
     bool rgb = rgb_order == WS2801_RGB;
-    color.r = rgb_order ? pixels[ofs] : pixels[ofs+1];
-    color.g = rgb_order ? pixels[ofs+1] : pixels[ofs];
+    color.r = rgb ? pixels[ofs] : pixels[ofs+1];
+    color.g = rgb ? pixels[ofs+1] : pixels[ofs];
     color.b = pixels[ofs+2];
   } else {
     color.r = 0;
