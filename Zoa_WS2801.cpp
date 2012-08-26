@@ -75,10 +75,24 @@ rgbInfo_t Zoa_WS2801::getPixelRGBColor( uint16_t n )
   rgbInfo_t color;
   if (n < numLEDs) {
     uint16_t ofs = n*3;
-    bool rgb = rgb_order == WS2801_RGB;
-    color.r = rgb ? pixels[ofs] : pixels[ofs+1];
-    color.g = rgb ? pixels[ofs+1] : pixels[ofs];
-    color.b = pixels[ofs+2];
+    switch ( rgb_order )
+    {
+      case WS2801_BGR:
+	color.r = pixels[ofs+2];
+	color.g = pixels[ofs+1];
+	color.b = pixels[ofs];
+	break;
+      case WS2801_GRB:
+	color.r = pixels[ofs+1];
+	color.g = pixels[ofs];
+	color.b = pixels[ofs+2];
+	break;
+      case WS2801_RGB:
+	color.r = pixels[ofs];
+	color.g = pixels[ofs+1];
+	color.b = pixels[ofs+2];
+	break;
+    }
   } else {
     color.r = 0;
     color.g = 0;
@@ -291,14 +305,24 @@ void Adafruit_WS2801::setPixelColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b)
   if(n < numLEDs) { // Arrays are 0-indexed, thus NOT '<='
     uint8_t *p = &pixels[n * 3];
     // See notes later regarding color order
-    if(rgb_order == WS2801_RGB) {
-      *p++ = r;
-      *p++ = g;
-    } else {
-      *p++ = g;
-      *p++ = r;
+    switch ( rgb_order )
+    {
+      case WS2801_BGR:
+	*p++ = b;
+	*p++ = g;
+	*p++ = r;
+	break;
+      case WS2801_GRB:
+	*p++ = g;
+	*p++ = r;
+	*p++ = b;
+	break;
+      case WS2801_RGB:
+	*p++ = r;
+	*p++ = g;
+	*p++ = b;
+	break;
     }
-    *p++ = b;
   }
 }
 
@@ -310,14 +334,25 @@ void Adafruit_WS2801::setPixelColor(uint16_t n, uint32_t c) {
     // internal color representation is native to different pixel
     // types.  For compatibility with existing code, 'packed' RGB
     // values passed in or out are always 0xRRGGBB order.
-    if(rgb_order == WS2801_RGB) {
-      *p++ = c >> 16; // Red
-      *p++ = c >>  8; // Green
-    } else {
-      *p++ = c >>  8; // Green
-      *p++ = c >> 16; // Red
+    
+    switch ( rgb_order )
+    {
+      case WS2801_BGR:
+	*p++ = c; // Red
+	*p++ = c >>  8; // Green
+	*p++ = c >> 16;       // Blue
+	break;
+      case WS2801_GRB:
+	*p++ = c >>  8; // Green
+	*p++ = c >> 16; // Red
+	*p++ = c;       // Blue
+	break;
+      case WS2801_RGB:
+	*p++ = c >> 16; // Red
+	*p++ = c >>  8; // Green
+	*p++ = c;       // Blue
+	break;
     }
-    *p++ = c;         // Blue
   }
 }
 
@@ -329,9 +364,15 @@ uint32_t Adafruit_WS2801::getPixelColor(uint16_t n) {
     // internal color representation is native to different pixel
     // types.  For compatibility with existing code, 'packed' RGB
     // values passed in or out are always 0xRRGGBB order.
-    return (rgb_order == WS2801_RGB) ?
-      ((uint32_t)pixels[ofs] << 16) | (pixels[ofs + 1] <<  8) | pixels[ofs + 2] :
-      (pixels[ofs] <<  8) | ((uint32_t)pixels[ofs + 1] << 16) | pixels[ofs + 2];
+    switch ( rgb_order )
+    {
+      case WS2801_BGR:
+	return pixels[ofs + 2] | (pixels[ofs + 1] <<  8) | ((uint32_t)pixels[ofs] << 16);
+      case WS2801_GRB:
+	return (pixels[ofs] <<  8) | ((uint32_t)pixels[ofs + 1] << 16) | pixels[ofs + 2];
+      case WS2801_RGB:
+	return ((uint32_t)pixels[ofs] << 16) | (pixels[ofs + 1] <<  8) | pixels[ofs + 2];
+    }
   }
 
   return 0; // Pixel # is out of bounds
